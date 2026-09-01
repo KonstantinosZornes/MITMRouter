@@ -82,7 +82,7 @@ MITMRouter 把内部路由身份转换为不同出口平台所需的会话格式
 
 上游连接支持 `http://`、`https://`、`socks5://` 和 `socks5h://`。平台会话本身有生命周期，MITMRouter 能保证的是稳定地使用同一个会话标识；会话在平台侧过期回收后，出口 IP 仍可能变化。
 
-<img width="3000" height="1662" alt="image" src="https://github.com/user-attachments/assets/90ea9a17-0f26-45dc-b7c4-4c132aacf16a" />
+<img width="3000" height="1662" alt="图片" src="https://github.com/user-attachments/assets/62a5f2eb-1c4c-4341-8a6c-d9e8373a40db" />
 
 ### 4. 账号与出口编排
 
@@ -96,7 +96,8 @@ MITMRouter 把内部路由身份转换为不同出口平台所需的会话格式
 
 这样可以把“账号是谁”和“出口从哪里走”分开管理，适合 Token 轮换、出口池切换和多账号隔离。
 
-<img width="3000" height="1662" alt="image" src="https://github.com/user-attachments/assets/c98822be-9742-42cb-8a85-b2b55102db20" />
+<img width="3000" height="1662" alt="图片" src="https://github.com/user-attachments/assets/c48bc1c9-075c-4890-98a9-12c8a35157a2" />
+
 
 ### 5. 管理、审计和安全控制
 
@@ -110,7 +111,7 @@ MITMRouter 把内部路由身份转换为不同出口平台所需的会话格式
 - 入站认证、管理台 HTTPS 和敏感信息日志保护；
 - 更新记录用于查看同步源和账号状态变化。
 
-<img width="3000" height="1662" alt="image" src="https://github.com/user-attachments/assets/cdfada2d-f983-4083-b8dd-0ba37106c8b8" />
+<img width="3000" height="1662" alt="图片" src="https://github.com/user-attachments/assets/72dadbc3-01ab-41e7-a017-45c9c12b1bd3" />
 
 
 ## 路由链路
