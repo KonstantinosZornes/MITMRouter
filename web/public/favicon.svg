@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 品牌渐变底 + 双向箭头穿过中间节点：呼应 MITMRouter 的中间人角色 -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#g)"/>
+  <g stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M46 19H20M28 11L20 19L28 27"/>
+    <path d="M18 45H44M36 37L44 45L36 53"/>
+  </g>
+  <circle cx="32" cy="32" r="5" fill="#fff"/>
+</svg>

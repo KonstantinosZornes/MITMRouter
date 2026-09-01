@@ -1,0 +1,257 @@
+name: Release MITMRouter
+
+on:
+  # Create the GitHub Release first, then this workflow attaches the binaries.
+  release:
+    types: [published]
+  # Useful for retrying a release after a transient build failure.
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing published release tag, for example v0.1.0
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mitmrouter-release-${{ github.event.release.tag_name || inputs.release_tag }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "24.14.1"
+  PNPM_VERSION: "11.7.0"
+
+jobs:
+  resolve-release:
+    name: Resolve release metadata
+    runs-on: ubuntu-24.04
+    outputs:
+      release_tag: ${{ steps.metadata.outputs.release_tag }}
+      version: ${{ steps.metadata.outputs.version }}
+    steps:
+      - name: Validate release tag
+        id: metadata
+        env:
+          RAW_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          tag="$RAW_TAG"
+          if [[ ! "$tag" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+            echo "release tag must use vX.Y.Z, for example v0.1.0 or v1.2.3-beta.1; got: $RAW_TAG" >&2
+            exit 1
+          fi
+
+          is_draft="$(gh release view "$tag" --repo "$REPOSITORY" --json isDraft --jq '.isDraft')"
+          if [[ "$is_draft" != "false" ]]; then
+            echo "release $tag must be published before its assets can be built" >&2
+            exit 1
+          fi
+
+          version="${tag#v}"
+          echo "release_tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Building release $tag from its tagged source."
+
+  verify:
+    name: Verify source
+    needs: resolve-release
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve-release.outputs.release_tag }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Build embedded web console
+        run: |
+          pnpm --dir web install --frozen-lockfile
+          pnpm --dir web run build
+
+      - name: Test and vet Go source
+        run: |
+          go test ./...
+          go vet ./...
+
+  verify-windows:
+    name: Verify Windows storage
+    needs: resolve-release
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve-release.outputs.release_tag }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Test Windows storage initialization
+        env:
+          CGO_ENABLED: "0"
+        run: go test ./internal/store -run '^(TestOpenUsableOnWindows|TestSQLiteDSNForWindowsKeepsNativePath)$'
+
+  build:
+    name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
+    needs: [resolve-release, verify, verify-windows]
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+          - goos: windows
+            goarch: arm64
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.resolve-release.outputs.version }}
+      GOOS: ${{ matrix.goos }}
+      GOARCH: ${{ matrix.goarch }}
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve-release.outputs.release_tag }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Build web console
+        run: |
+          pnpm --dir web install --frozen-lockfile
+          pnpm --dir web run build
+
+      - name: Build release binary
+        run: |
+          set -Eeuo pipefail
+
+          mkdir -p release
+          binary="mitmrouter-${VERSION}-${GOOS}-${GOARCH}"
+          if [[ "$GOOS" == "windows" ]]; then
+            binary+=".exe"
+          fi
+
+          ./scripts/build.sh \
+            --skip-web \
+            --os "$GOOS" \
+            --arch "$GOARCH" \
+            --output "release/$binary"
+          test -s "release/$binary"
+          if [[ "$GOOS" != "windows" ]]; then
+            # Keep the executable bit when the raw binary is downloaded.
+            chmod +x "release/$binary"
+          fi
+
+          ls -lh "release/$binary"
+
+      - name: Upload release binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: mitmrouter-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: release/mitmrouter-*
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Attach release assets
+    needs: [resolve-release, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      TAG: ${{ needs.resolve-release.outputs.release_tag }}
+      REPOSITORY: ${{ github.repository }}
+    steps:
+      - name: Download release binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: mitmrouter-*
+          path: release
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          set -Eeuo pipefail
+          mkdir -p release
+          mapfile -t assets < <(find release -maxdepth 1 -type f -name 'mitmrouter-*' -print | sort)
+          if (( ${#assets[@]} == 0 )); then
+            echo "no release binaries were downloaded" >&2
+            exit 1
+          fi
+
+          relative_assets=("${assets[@]#release/}")
+          (cd release && sha256sum "${relative_assets[@]}" | sort > checksums.txt)
+          (cd release && sha256sum -c checksums.txt)
+          printf '%s\n' "${assets[@]}"
+          cat release/checksums.txt
+
+      - name: Upload assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          mapfile -t assets < <(find release -maxdepth 1 -type f -name 'mitmrouter-*' -print | sort)
+          gh release upload "$TAG" "${assets[@]}" release/checksums.txt --clobber --repo "$REPOSITORY"

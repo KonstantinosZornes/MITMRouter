@@ -1,0 +1,68 @@
+/* 全局视觉基调 v2 */
+:root {
+  --brand: #4f46e5;
+  --brand-2: #7c3aed;
+  --bg: #f3f4f6;
+  --sidebar-bg: #0b1220;
+  --card-radius: 16px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto,
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: #111827;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 细滚动条 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* 页面主卡片 */
+.page {
+  border-radius: var(--card-radius) !important;
+  border: none !important;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .1);
+}
+/* 应用外壳：侧边栏/顶栏固定，仅内容区滚动（高度锁死，让 .el-main 成为滚动容器） */
+.el-main { min-height: 0; }
+.main { padding: 22px 26px; }
+/* 基础设置页：内容交由页面内滚动框/底栏布局，主区不再留边距 */
+.main:has(.settings-page) { padding: 0; }
+.page-title {
+  margin: 0 0 6px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+.page-sub { margin: 0 0 18px; color: #6b7280; font-size: 13px; }
+
+.sec { border-radius: 14px !important; }
+.sec-t {
+  font-weight: 650; font-size: 14px; color: #111827;
+  display: flex; align-items: center; gap: 8px;
+}
+.sec-t .el-icon { color: var(--brand); }
+
+/* 工具栏 */
+.toolbar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: #fff; border-radius: 12px; padding: 12px 14px;
+  border: 1px solid #eceef2; margin-bottom: 14px;
+}
+.toolbar .grow { flex: 1; }
+
+/* 表格微调 */
+.el-table { --el-table-header-bg-color: #f9fafb; }
+.el-table th.el-table__cell { font-weight: 600; }
+.el-table .cell { line-height: 1.5; }
+
+/* 表单间距 */
+.el-form-item { margin-bottom: 16px; }

@@ -1,0 +1,29 @@
+# 数据与构建产物
+/data/
+/internal/webui/dist/
+/web/dist/
+
+# Node
+node_modules/
+*.log
+
+# Go
+*.test
+*.out
+
+# 本机 benchmark 原始结果（可复现生成，不提交）
+/artifacts/bench/
+
+.gomodcache
+.gocache.gocache/
+.gopath/
+toolchain/
+.gocache
+data-m2
+m2smoke
+bindeploy-data/
+deploy.tgz
+m2smoke/
+bin
+m4smoke/bin/
+.cache
