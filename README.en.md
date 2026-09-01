@@ -82,7 +82,7 @@ MITMRouter converts its internal routing identity into the session format requir
 
 Upstream connection URLs support `http://`, `https://`, `socks5://`, and `socks5h://`. Platform sessions have their own lifetimes. MITMRouter can keep using the same session identifier, but the egress IP may still change after the platform expires or reclaims that session.
 
-<img width="3000" height="1662" alt="image" src="https://github.com/user-attachments/assets/90ea9a17-0f26-45dc-b7c4-4c132aacf16a" />
+<img width="3000" height="1662" alt="image" src="https://github.com/user-attachments/assets/62a5f2eb-1c4c-4341-8a6c-d9e8373a40db" />
 
 ### 4. Account and Egress Orchestration
 
@@ -96,7 +96,7 @@ Account management can pull accounts from CLIProxyAPI, Sub2API, and other sync s
 
 This separates “which account is it?” from “which egress should it use?”, which is useful for token rotation, egress-pool switching, and multi-account isolation.
 
-<img width="3000" height="1662" alt="image" src="https://github.com/user-attachments/assets/c98822be-9742-42cb-8a85-b2b55102db20" />
+<img width="3000" height="1662" alt="image" src="https://github.com/user-attachments/assets/c48bc1c9-075c-4890-98a9-12c8a35157a2" />
 
 ### 5. Management, Audit, and Security Controls
 
@@ -110,7 +110,7 @@ This separates “which account is it?” from “which egress should it use?”
 - Inbound authentication, HTTPS for the admin console, and sensitive-information protection in logs;
 - Update records for tracking sync-source pulls, account mappings, and related status changes.
 
-<img width="3000" height="1662" alt="image" src="https://github.com/user-attachments/assets/cdfada2d-f983-4083-b8dd-0ba37106c8b8" />
+<img width="3000" height="1662" alt="image" src="https://github.com/user-attachments/assets/72dadbc3-01ab-41e7-a017-45c9c12b1bd3" />
 
 ## Routing Path
 
